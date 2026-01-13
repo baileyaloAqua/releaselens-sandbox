@@ -1,0 +1,284 @@
+name: ReleaseLens - Staging + (Auto Prod for Low Risk)
+
+on:
+  push:
+    tags:
+      - 'sandbox-service-v*'  # adjust pattern for your real service
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+
+    outputs:
+      change_key: ${{ steps.jira.outputs.change_key }}
+      risk_level: ${{ steps.manifest.outputs.risk_level }}
+      service: ${{ steps.manifest.outputs.service }}
+      version: ${{ steps.tag.outputs.version }}
+      tag: ${{ steps.tag.outputs.tag }}
+
+    env:
+      JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+      JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_CHANGE_PROJECT_KEY: ${{ secrets.JIRA_CHANGE_PROJECT_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract tag and version
+        id: tag
+        run: |
+          TAG_NAME="${GITHUB_REF##*/}"
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+          # assuming tag format: sandbox-service-v0.1.0
+          VERSION="${TAG_NAME#sandbox-service-v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Parse deployment manifest
+        id: manifest
+        run: |
+          FILE=".techops/deployment.yaml"
+          if [ ! -f "$FILE" ]; then
+            echo "deployment.yaml not found"
+            exit 1
+          fi
+
+          SERVICE=$(yq '.service' $FILE)
+          ENVIRONMENT=$(yq '.environment' $FILE)
+          SUMMARY=$(yq '.summary' $FILE)
+          JIRA_DEV_TICKET=$(yq '.jira_ticket' $FILE)
+          CHANGE_TYPE=$(yq '.change_type' $FILE)
+
+          RISK_LEVEL=$(yq '.impact.risk_level' $FILE)
+          BLAST_RADIUS=$(yq '.impact.blast_radius' $FILE)
+          SERVICES_IMPACTED=$(yq '.impact.services_impacted | join(", ")' $FILE)
+          DATA_MIGRATION=$(yq '.impact.data_migration' $FILE)
+          BACKWARD_COMPATIBLE=$(yq '.impact.backward_compatible' $FILE)
+
+          UNIT_TESTS=$(yq '.tests.unit' $FILE)
+          INTEGRATION_TESTS=$(yq '.tests.integration' $FILE)
+          LOAD_TESTS=$(yq '.tests.load' $FILE)
+          TEST_REPORT_URL=$(yq '.tests.test_report_url' $FILE)
+
+          ROLLBACK_METHOD=$(yq '.rollback.method' $FILE)
+          ROLLBACK_TARGET=$(yq '.rollback.target_version' $FILE)
+          ROLLBACK_TIME=$(yq '.rollback.est_time_minutes' $FILE)
+          ROLLBACK_DATA_RESTORE=$(yq '.rollback.data_restore_required' $FILE)
+
+          TEAM=$(yq '.owner.team' $FILE)
+          SLACK_CHANNEL=$(yq '.owner.slack_channel' $FILE)
+
+          echo "service=$SERVICE" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "summary=$SUMMARY" >> $GITHUB_OUTPUT
+          echo "jira_dev_ticket=$JIRA_DEV_TICKET" >> $GITHUB_OUTPUT
+          echo "change_type=$CHANGE_TYPE" >> $GITHUB_OUTPUT
+          echo "risk_level=$RISK_LEVEL" >> $GITHUB_OUTPUT
+          echo "blast_radius=$BLAST_RADIUS" >> $GITHUB_OUTPUT
+          echo "services_impacted=$SERVICES_IMPACTED" >> $GITHUB_OUTPUT
+          echo "data_migration=$DATA_MIGRATION" >> $GITHUB_OUTPUT
+          echo "backward_compatible=$BACKWARD_COMPATIBLE" >> $GITHUB_OUTPUT
+          echo "unit_tests=$UNIT_TESTS" >> $GITHUB_OUTPUT
+          echo "integration_tests=$INTEGRATION_TESTS" >> $GITHUB_OUTPUT
+          echo "load_tests=$LOAD_TESTS" >> $GITHUB_OUTPUT
+          echo "test_report_url=$TEST_REPORT_URL" >> $GITHUB_OUTPUT
+          echo "rollback_method=$ROLLBACK_METHOD" >> $GITHUB_OUTPUT
+          echo "rollback_target=$ROLLBACK_TARGET" >> $GITHUB_OUTPUT
+          echo "rollback_time=$ROLLBACK_TIME" >> $GITHUB_OUTPUT
+          echo "rollback_data_restore=$ROLLBACK_DATA_RESTORE" >> $GITHUB_OUTPUT
+          echo "team=$TEAM" >> $GITHUB_OUTPUT
+          echo "owner_slack_channel=$SLACK_CHANNEL" >> $GITHUB_OUTPUT
+
+      - name: FAKE staging deploy
+        run: |
+          echo "=== FAKE STAGING DEPLOYMENT ==="
+          echo "Would deploy ${{ steps.manifest.outputs.service }}:${{ steps.tag.outputs.version }} to STAGING."
+          sleep 5
+          echo "Fake staging deployment complete."
+
+      - name: Create Jira Change issue
+        id: jira
+        run: |
+          CHANGE_SUMMARY="[TEST] [${{ steps.manifest.outputs.service }}] Deploy v${{ steps.tag.outputs.version }} to staging"
+          DESCRIPTION=$(cat <<EOF
+          [TEST] Sandbox E2E ReleaseLens deployment
+          
+          Deployment summary: ${{ steps.manifest.outputs.summary }}
+          
+          Service: ${{ steps.manifest.outputs.service }}
+          Environment: staging
+          Version/Tag: ${{ steps.tag.outputs.tag }}
+          
+          Risk: ${{ steps.manifest.outputs.risk_level }}
+          Blast radius: ${{ steps.manifest.outputs.blast_radius }}
+          Services impacted: ${{ steps.manifest.outputs.services_impacted }}
+          Data migration: ${{ steps.manifest.outputs.data_migration }}
+          Backward compatible: ${{ steps.manifest.outputs.backward_compatible }}
+          
+          Tests:
+            Unit: ${{ steps.manifest.outputs.unit_tests }}
+            Integration: ${{ steps.manifest.outputs.integration_tests }}
+            Load: ${{ steps.manifest.outputs.load_tests }}
+            Test report: ${{ steps.manifest.outputs.test_report_url }}
+          
+          Rollback:
+            Method: ${{ steps.manifest.outputs.rollback_method }}
+            Target version: ${{ steps.manifest.outputs.rollback_target }}
+            Est. time (min): ${{ steps.manifest.outputs.rollback_time }}
+            Data restore required: ${{ steps.manifest.outputs.rollback_data_restore }}
+          
+          Owner:
+            Team: ${{ steps.manifest.outputs.team }}
+            Slack: ${{ steps.manifest.outputs.owner_slack_channel }}
+          
+          GitHub:
+            Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          EOF
+          )
+
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
+            "${JIRA_BASE_URL}/rest/api/3/issue" \
+            --data @- <<EOF
+          {
+            "fields": {
+              "project": { "key": "${JIRA_CHANGE_PROJECT_KEY}" },
+              "summary": "${CHANGE_SUMMARY}",
+              "issuetype": { "name": "Change" },
+              "description": "${DESCRIPTION}",
+              "customfield_10001": "${{ steps.manifest.outputs.service }}",
+              "customfield_10002": "staging",
+              "customfield_10003": "${{ steps.manifest.outputs.risk_level }}",
+              "customfield_10004": "${{ steps.manifest.outputs.blast_radius }}",
+              "customfield_10005": "${{ steps.manifest.outputs.services_impacted }}",
+              "customfield_10006": "${{ steps.manifest.outputs.data_migration }}",
+              "customfield_10007": "${{ steps.manifest.outputs.backward_compatible }}",
+              "customfield_10008": "${{ steps.manifest.outputs.rollback_method }}",
+              "customfield_10009": "${{ steps.manifest.outputs.rollback_target }}",
+              "customfield_10010": ${{ steps.manifest.outputs.rollback_time }},
+              "customfield_10011": "${{ steps.manifest.outputs.rollback_data_restore }}",
+              "customfield_10012": "${{ steps.manifest.outputs.team }}",
+              "customfield_10013": "${{ steps.manifest.outputs.owner_slack_channel }}",
+              "customfield_10014": "${{ steps.tag.outputs.tag }}",
+              "customfield_10015": "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            }
+          }
+          EOF
+          )
+
+          echo "Jira create response: $RESPONSE"
+          KEY=$(echo "$RESPONSE" | jq -r '.key')
+          if [ "$KEY" = "null" ] || [ -z "$KEY" ]; then
+            echo "Failed to create Jira Change issue"
+            exit 1
+          fi
+          echo "change_key=$KEY" >> $GITHUB_OUTPUT
+
+      - name: Post Slack notification (staging)
+        if: always()
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ job.status }}" != "success" ]; then
+            STATUS="FAILED"
+          fi
+
+          text="*Staging Deployment ${STATUS} (TEST)*\n\
+          Service: \`${{ steps.manifest.outputs.service }}\`\n\
+          Env: \`staging\`\n\
+          Version: \`${{ steps.tag.outputs.tag }}\`\n\
+          Risk: \`${{ steps.manifest.outputs.risk_level }}\`\n\
+          Change: \`${{ steps.jira.outputs.change_key }}\`\n\
+          Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \"$text\"}" \
+            "$SLACK_WEBHOOK_URL"
+
+  deploy-prod:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+
+    # IMPORTANT: only auto-promote low risk
+    if: needs.deploy-staging.outputs.risk_level == 'low'
+
+    env:
+      JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+      JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag exists
+        run: |
+          git fetch --tags
+          TAG="${{ needs.deploy-staging.outputs.tag }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag not found: $TAG"
+            exit 1
+          fi
+          echo "Tag exists: $TAG"
+
+      - name: FAKE Prod Deploy (auto, low risk)
+        run: |
+          TAG="${{ needs.deploy-staging.outputs.tag }}"
+          SERVICE="${{ needs.deploy-staging.outputs.service }}"
+          VERSION="${{ needs.deploy-staging.outputs.version }}"
+          echo "=== FAKE PROD DEPLOYMENT (AUTO, LOW RISK) ==="
+          echo "Would deploy $SERVICE:$VERSION ($TAG) to PRODUCTION."
+          sleep 5
+          echo "Fake prod deployment complete."
+
+      - name: Transition Jira Change to 'Completed'
+        run: |
+          CHANGE_KEY="${{ needs.deploy-staging.outputs.change_key }}"
+
+          TRANSITIONS=$(curl -s -X GET \
+            -H "Content-Type: application/json" \
+            -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
+            "${JIRA_BASE_URL}/rest/api/3/issue/${CHANGE_KEY}/transitions")
+
+          COMPLETE_ID=$(echo "$TRANSITIONS" | jq -r '.transitions[] | select(.to.name=="Completed") | .id')
+
+          if [ -z "$COMPLETE_ID" ]; then
+            echo "No 'Completed' transition found for ${CHANGE_KEY}"
+            exit 1
+          fi
+
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
+            "${JIRA_BASE_URL}/rest/api/3/issue/${CHANGE_KEY}/transitions" \
+            --data "{\"transition\": {\"id\": \"$COMPLETE_ID\"}}"
+
+      - name: Post Slack notification (prod – auto)
+        if: always()
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ job.status }}" != "success" ]; then
+            STATUS="FAILED"
+          fi
+
+          text="*Production Deployment (Auto, Low Risk, TEST) ${STATUS}*\n\
+          Service: \`${{ needs.deploy-staging.outputs.service }}\`\n\
+          Env: \`production\`\n\
+          Version: \`${{ needs.deploy-staging.outputs.tag }}\`\n\
+          Risk: \`low\`\n\
+          Change: \`${{ needs.deploy-staging.outputs.change_key }}\`\n\
+          Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \"$text\"}" \
+            "$SLACK_WEBHOOK_URL"

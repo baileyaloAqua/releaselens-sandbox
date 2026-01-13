@@ -1,0 +1,27 @@
+service: sandbox-service
+version: "0.1.0"
+environment: staging
+summary: "[TEST] Sandbox low-risk deployment E2E test"
+jira_ticket: "FO-TEST-1"
+change_type: "test"
+impact:
+  user_visible: false
+  blast_radius: "test only"
+  services_impacted:
+    - "none"
+  data_migration: false
+  backward_compatible: true
+  risk_level: "low"
+tests:
+  unit: passed
+  integration: passed
+  load: not_run
+  test_report_url: "https://example.com/fake-test-report"
+rollback:
+  method: "rollback_to_version"
+  target_version: "0.0.9"
+  est_time_minutes: 5
+  data_restore_required: false
+owner:
+  team: "sandbox-team"
+  slack_channel: "#releaselens-sandbox"

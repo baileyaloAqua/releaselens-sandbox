@@ -36,8 +36,10 @@ jobs:
           VERSION="${TAG_NAME#sandbox-service-v}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Install yq
+      - name: Install yq and jq
         run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
@@ -50,30 +52,29 @@ jobs:
             exit 1
           fi
 
-          SERVICE=$(yq '.service' $FILE)
-          ENVIRONMENT=$(yq '.environment' $FILE)
-          SUMMARY=$(yq '.summary' $FILE)
-          JIRA_DEV_TICKET=$(yq '.jira_ticket' $FILE)
-          CHANGE_TYPE=$(yq '.change_type' $FILE)
+          SERVICE=$(yq '.service' "$FILE")
+          ENVIRONMENT=$(yq '.environment' "$FILE")
+          SUMMARY=$(yq '.summary' "$FILE")
+          JIRA_DEV_TICKET=$(yq '.jira_ticket' "$FILE")
+          CHANGE_TYPE=$(yq '.change_type' "$FILE")
+          RISK_LEVEL=$(yq '.impact.risk_level' "$FILE")
+          BLAST_RADIUS=$(yq '.impact.blast_radius' "$FILE")
+          SERVICES_IMPACTED=$(yq '.impact.services_impacted | join(", ")' "$FILE")
+          DATA_MIGRATION=$(yq '.impact.data_migration' "$FILE")
+          BACKWARD_COMPATIBLE=$(yq '.impact.backward_compatible' "$FILE")
 
-          RISK_LEVEL=$(yq '.impact.risk_level' $FILE)
-          BLAST_RADIUS=$(yq '.impact.blast_radius' $FILE)
-          SERVICES_IMPACTED=$(yq '.impact.services_impacted | join(", ")' $FILE)
-          DATA_MIGRATION=$(yq '.impact.data_migration' $FILE)
-          BACKWARD_COMPATIBLE=$(yq '.impact.backward_compatible' $FILE)
+          UNIT_TESTS=$(yq '.tests.unit' "$FILE")
+          INTEGRATION_TESTS=$(yq '.tests.integration' "$FILE")
+          LOAD_TESTS=$(yq '.tests.load' "$FILE")
+          TEST_REPORT_URL=$(yq '.tests.test_report_url' "$FILE")
 
-          UNIT_TESTS=$(yq '.tests.unit' $FILE)
-          INTEGRATION_TESTS=$(yq '.tests.integration' $FILE)
-          LOAD_TESTS=$(yq '.tests.load' $FILE)
-          TEST_REPORT_URL=$(yq '.tests.test_report_url' $FILE)
+          ROLLBACK_METHOD=$(yq '.rollback.method' "$FILE")
+          ROLLBACK_TARGET=$(yq '.rollback.target_version' "$FILE")
+          ROLLBACK_TIME=$(yq '.rollback.est_time_minutes' "$FILE")
+          ROLLBACK_DATA_RESTORE=$(yq '.rollback.data_restore_required' "$FILE")
 
-          ROLLBACK_METHOD=$(yq '.rollback.method' $FILE)
-          ROLLBACK_TARGET=$(yq '.rollback.target_version' $FILE)
-          ROLLBACK_TIME=$(yq '.rollback.est_time_minutes' $FILE)
-          ROLLBACK_DATA_RESTORE=$(yq '.rollback.data_restore_required' $FILE)
-
-          TEAM=$(yq '.owner.team' $FILE)
-          SLACK_CHANNEL=$(yq '.owner.slack_channel' $FILE)
+          TEAM=$(yq '.owner.team' "$FILE")
+          SLACK_CHANNEL=$(yq '.owner.slack_channel' "$FILE")
 
           echo "service=$SERVICE" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
@@ -163,7 +164,7 @@ jobs:
               "customfield_10007": "${{ steps.manifest.outputs.backward_compatible }}",
               "customfield_10008": "${{ steps.manifest.outputs.rollback_method }}",
               "customfield_10009": "${{ steps.manifest.outputs.rollback_target }}",
-              "customfield_10010": ${{ steps.manifest.outputs.rollback_time }},
+              "customfield_10010": "${{ steps.manifest.outputs.rollback_time }}",
               "customfield_10011": "${{ steps.manifest.outputs.rollback_data_restore }}",
               "customfield_10012": "${{ steps.manifest.outputs.team }}",
               "customfield_10013": "${{ steps.manifest.outputs.owner_slack_channel }}",

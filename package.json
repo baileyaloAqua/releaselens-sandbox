@@ -1,9 +1,19 @@
-{ 
+{
   "name": "releaselens-sandbox",
   "version": "1.0.0",
-  "main": "src/shareCurrentDateTime.js",
+  "main": "src/app.js",
   "scripts": {
-    "test": "echo 'Error: no test specified' && exit 1"
+    "test": "echo 'Error: no test specified' && exit 1",
+    "build": "tsc",
+    "jira:create-change": "node dist/jira/create-change.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "axios": "^1.6.5",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3"
+  }
 }

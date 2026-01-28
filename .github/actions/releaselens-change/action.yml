@@ -1,0 +1,145 @@
+name: 'ReleaseLens - Jira Change Management'
+description: 'Create and manage Jira Change issues for deployments'
+author: 'ReleaseLens'
+
+inputs:
+  action:
+    description: 'Action to perform: create, transition, verify'
+    required: true
+  
+  # For create action
+  manifest-path:
+    description: 'Path to deployment manifest YAML file'
+    required: false
+    default: '.techops/deployment.yaml'
+  
+  git-tag:
+    description: 'Git tag being deployed'
+    required: false
+  
+  environment:
+    description: 'Target environment (staging or production)'
+    required: false
+    default: 'staging'
+  
+  # For transition and verify actions
+  change-key:
+    description: 'Jira Change issue key (e.g., CHGTEST-123)'
+    required: false
+  
+  target-state:
+    description: 'Target workflow state for transition'
+    required: false
+    default: 'Completed'
+  
+  # Jira credentials
+  jira-base-url:
+    description: 'Jira base URL (e.g., https://your-domain.atlassian.net)'
+    required: true
+  
+  jira-user-email:
+    description: 'Jira user email for authentication'
+    required: true
+  
+  jira-api-token:
+    description: 'Jira API token'
+    required: true
+  
+  jira-project-key:
+    description: 'Jira project key for Change issues'
+    required: false
+    default: 'CHGTEST'
+
+outputs:
+  change-key:
+    description: 'Created or updated Jira Change issue key'
+    value: ${{ steps.run.outputs.change_key }}
+  
+  risk-level:
+    description: 'Risk level from manifest (low, medium, high)'
+    value: ${{ steps.run.outputs.risk_level }}
+  
+  service:
+    description: 'Service name from manifest'
+    value: ${{ steps.run.outputs.service }}
+  
+  version:
+    description: 'Version from manifest'
+    value: ${{ steps.run.outputs.version }}
+  
+  status:
+    description: 'Current Jira issue status'
+    value: ${{ steps.run.outputs.status }}
+  
+  approved:
+    description: 'Whether change is approved for production (true/false)'
+    value: ${{ steps.run.outputs.approved }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}/../../..
+        npm install --production
+    
+    - name: Build TypeScript
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}/../../..
+        npm run build
+    
+    - name: Run ReleaseLens action
+      id: run
+      shell: bash
+      env:
+        JIRA_BASE_URL: ${{ inputs.jira-base-url }}
+        JIRA_USER_EMAIL: ${{ inputs.jira-user-email }}
+        JIRA_API_TOKEN: ${{ inputs.jira-api-token }}
+        JIRA_CHANGE_PROJECT_KEY: ${{ inputs.jira-project-key }}
+        GITHUB_SERVER_URL: ${{ github.server_url }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+        CHANGE_KEY: ${{ inputs.change-key }}
+      run: |
+        cd ${{ github.action_path }}/../../..
+        
+        case "${{ inputs.action }}" in
+          create)
+            echo "Creating Jira Change issue..."
+            node dist/jira/create-change.js \
+              --manifest "${{ inputs.manifest-path }}" \
+              --tag "${{ inputs.git-tag }}" \
+              --environment "${{ inputs.environment }}"
+            ;;
+          
+          transition)
+            echo "Transitioning Jira Change issue..."
+            node dist/jira/transition-change.js \
+              --change-key "${{ inputs.change-key }}" \
+              --state "${{ inputs.target-state }}"
+            ;;
+          
+          verify)
+            echo "Verifying production approval..."
+            node dist/jira/verify-approval.js \
+              --change-key "${{ inputs.change-key }}"
+            ;;
+          
+          *)
+            echo "Error: Unknown action '${{ inputs.action }}'"
+            echo "Valid actions: create, transition, verify"
+            exit 1
+            ;;
+        esac
+
+branding:
+  icon: 'git-branch'
+  color: 'blue'

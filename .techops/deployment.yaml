@@ -1,8 +1,8 @@
 service: sandbox-service
 version: "0.1.0"
 environment: staging
-summary: "[TEST] Sandbox low-risk deployment E2E test"
-jira_ticket: "FO-TEST-1"
+summary: "[TEST] Sandbox deployment E2E test"
+jira_ticket: "FO-TEST-1, FO-TEST-2, BE-TEST-3"  # Comma-separated for multiple tickets
 change_type: "test"
 impact:
   user_visible: false
@@ -11,7 +11,7 @@ impact:
     - "none"
   data_migration: false
   backward_compatible: true
-  risk_level: "low"
+  risk_level: "high"
 tests:
   unit: passed
   integration: passed

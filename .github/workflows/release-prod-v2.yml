@@ -1,0 +1,73 @@
+name: ReleaseLens v2 - Production Deploy (TechOps Approval Required)
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_tag:
+        description: 'Tag to deploy (e.g., sandbox-service-v0.2.0)'
+        required: true
+      change_key:
+        description: 'Jira Change key (e.g., CHGTEST-2)'
+        required: true
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag exists
+        run: |
+          git fetch --tags
+          if ! git rev-parse "${{ github.event.inputs.git_tag }}" >/dev/null 2>&1; then
+            echo "❌ Tag not found: ${{ github.event.inputs.git_tag }}"
+            exit 1
+          fi
+          echo "✓ Tag exists: ${{ github.event.inputs.git_tag }}"
+
+      - name: Verify TechOps approval
+        id: verify
+        uses: ./.github/actions/releaselens-change
+        with:
+          action: verify
+          change-key: ${{ github.event.inputs.change_key }}
+          jira-base-url: ${{ secrets.JIRA_BASE_URL }}
+          jira-user-email: ${{ secrets.JIRA_USER_EMAIL }}
+          jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
+          jira-project-key: ${{ secrets.JIRA_CHANGE_PROJECT_KEY }}
+
+      - name: FAKE prod deploy (manual, med/high risk)
+        run: |
+          echo "=== FAKE PROD DEPLOYMENT (MANUAL, MED/HIGH RISK) ==="
+          echo "Would deploy tag ${{ github.event.inputs.git_tag }} to PRODUCTION"
+          echo "Risk level: ${{ steps.verify.outputs.risk-level }}"
+          echo "Approval status: ${{ steps.verify.outputs.status }}"
+          sleep 3
+          echo "✓ Production deployment complete"
+
+      - name: Transition Jira Change to Completed
+        uses: ./.github/actions/releaselens-change
+        with:
+          action: transition
+          change-key: ${{ github.event.inputs.change_key }}
+          target-state: Completed
+          jira-base-url: ${{ secrets.JIRA_BASE_URL }}
+          jira-user-email: ${{ secrets.JIRA_USER_EMAIL }}
+          jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
+          jira-project-key: ${{ secrets.JIRA_CHANGE_PROJECT_KEY }}
+
+      - name: Post Slack notification
+        if: always()
+        run: |
+          STATUS="${{ job.status == 'success' && 'SUCCESS' || 'FAILED' }}"
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data @- "${{ secrets.SLACK_WEBHOOK_URL }}" <<EOF
+          {
+            "text": "*Production Deployment (Manual, Med/High Risk) ${STATUS}*\nTag: \`${{ github.event.inputs.git_tag }}\`\nChange: \`${{ github.event.inputs.change_key }}\`\nRisk: \`${{ steps.verify.outputs.risk-level }}\`\nStatus: \`${{ steps.verify.outputs.status }}\`\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF

@@ -1,0 +1,64 @@
+name: ReleaseLens v2 - Staging Deploy (All Changes Require Approval)
+
+on:
+  push:
+    tags:
+      - 'sandbox-service-v*'
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      change_key: ${{ steps.create-change.outputs.change-key }}
+      risk_level: ${{ steps.create-change.outputs.risk-level }}
+      service: ${{ steps.create-change.outputs.service }}
+      version: ${{ steps.create-change.outputs.version }}
+      tag: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: tag
+        run: |
+          TAG_NAME="${GITHUB_REF##*/}"
+          echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
+          VERSION="${TAG_NAME#sandbox-service-v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: FAKE staging deploy
+        run: |
+          echo "=== FAKE STAGING DEPLOYMENT ==="
+          echo "Would deploy to STAGING..."
+          sleep 3
+          echo "✓ Staging deployment complete"
+
+      - name: Create Jira Change issue
+        id: create-change
+        uses: ./.github/actions/releaselens-change
+        with:
+          action: create
+          manifest-path: .techops/deployment.yaml
+          git-tag: ${{ steps.tag.outputs.tag }}
+          environment: staging
+          jira-base-url: ${{ secrets.JIRA_BASE_URL }}
+          jira-user-email: ${{ secrets.JIRA_USER_EMAIL }}
+          jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
+          jira-project-key: ${{ secrets.JIRA_CHANGE_PROJECT_KEY }}
+
+      - name: Post Slack notification
+        if: always()
+        run: |
+          STATUS="${{ job.status == 'success' && 'SUCCESS' || 'FAILED' }}"
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data @- "${{ secrets.SLACK_WEBHOOK_URL }}" <<EOF
+          {
+            "text": "*Staging Deployment ${STATUS}*\n📋 *Next Step*: TechOps approval required for production deployment\n\nService: \`${{ steps.create-change.outputs.service }}\`\nEnvironment: \`staging\`\nVersion: \`${{ steps.tag.outputs.tag }}\`\nRisk: \`${{ steps.create-change.outputs.risk-level }}\`\nChange: \`${{ steps.create-change.outputs.change-key }}\` - <${{ secrets.JIRA_BASE_URL }}/browse/${{ steps.create-change.outputs.change-key }}|View in Jira>\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n⚠️ *Action Required*: TechOps must approve \`${{ steps.create-change.outputs.change-key }}\` in Jira before production deployment"
+          }
+          EOF
+
+  # NOTE: Production deployment removed - ALL changes require TechOps approval
+  # Use the manual production workflow (release-prod-v2.yml) for all deployments

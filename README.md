@@ -12,7 +12,7 @@ ReleaseLens automates the entire change management workflow:
 - 📊 **Full Audit Trail** - All deployment metadata in structured Jira fields
 - 📢 **Slack Notifications** - Real-time updates to your team
 
-> **⚠️ High Risk Policy**: This implementation requires TechOps approval for ALL production deployments. There is no auto-deploy to production. See `docs/HIGH_RISK_POLICY.md` for details.
+> **⚠️ High Risk Policy**: This implementation requires TechOps approval for ALL production deployments. There is no auto-deploy to production.
 
 ## How It Works
 
@@ -358,37 +358,32 @@ curl -X GET \
 
 **Current Policy**: All production deployments require explicit TechOps approval. No exceptions.
 
-## Documentation Guide
+## Documentation
 
 ### 📖 For Developers
 
 | Document | Purpose |
 |----------|---------|
 | **`QUICK_START_DEVELOPERS.md`** | 5-minute quick start guide |
-| **`HOW_IT_WORKS.md`** | Simple explanation of the system |
+| **`docs/DEVELOPER_WORKFLOW.md`** | Complete developer workflow |
+| **`docs/JIRA_TICKETS_EXPLAINED.md`** | Dev tickets vs Change tickets |
+| **`docs/MULTIPLE_DEV_TICKETS.md`** | Multiple tickets per deployment |
 | `.techops/deployment.yaml` | Manifest template to update |
-
-**Key points**: 
-- Dev tickets (FO-1234) already exist - keep using them
-- You reference your dev ticket in `deployment.yaml`
-- GitHub Actions creates Change tickets (CHGTEST-42) automatically
-- Change tickets link to your dev tickets
 
 ### ⚙️ For DevOps/Setup
 
 | Document | Purpose |
 |----------|---------|
-| **`SETUP_CHECKLIST.md`** | Step-by-step setup checklist |
 | **`docs/RELEASELENS_SETUP.md`** | Complete Jira setup (7 phases) |
 | **`docs/ARCHITECTURE.md`** | Technical architecture |
 | **`docs/FLOW_DIAGRAM.md`** | Visual flow with execution logs |
+| **`docs/QUICK_REFERENCE.md`** | CLI commands & JQL queries |
 
 ### 🔒 For TechOps
 
 | Document | Purpose |
 |----------|---------|
-| **`POLICY_SUMMARY.md`** | Quick policy reference |
-| **`docs/HIGH_RISK_POLICY.md`** | Complete approval policy 
+| **`docs/QUICK_REFERENCE.md`** | JQL queries & dashboard tips | 
 
 
 ## Scripts

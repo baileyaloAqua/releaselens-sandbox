@@ -360,4 +360,4 @@ Full traceability for TechOps approval!
 ---
 
 **Last Updated**: 2026-01-28  
-**See Also**: `JIRA_TICKETS_QUICK_GUIDE.md`, `docs/JIRA_TICKETS_EXPLAINED.md`
+**See Also**: `docs/JIRA_TICKETS_EXPLAINED.md`, `QUICK_START_DEVELOPERS.md`

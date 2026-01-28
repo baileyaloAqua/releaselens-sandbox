@@ -219,7 +219,7 @@ rollback:
 - **This guide**: Quick start (you are here)
 - **`docs/DEVELOPER_WORKFLOW.md`**: Complete developer guide
 - **`docs/ARCHITECTURE.md`**: How automation works
-- **`docs/HIGH_RISK_POLICY.md`**: TechOps approval policy
+- **README.md**: See "Risk Assessment" section for TechOps approval policy
 
 ---
 

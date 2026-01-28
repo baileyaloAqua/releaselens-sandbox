@@ -207,15 +207,15 @@ git push origin sandbox-service-v1.0.0
 releaselens-sandbox/
 ├── src/
 │   ├── jira/                     # ⭐ AUTOMATION ENGINE (used by CI/CD)
-│   │   ├── types.ts              # TypeScript type definitions
-│   │   ├── config.ts             # Jira custom field mappings
-│   │   ├── client.ts             # Jira API client (calls Jira REST API)
-│   │   ├── manifest-parser.ts    # Reads & parses deployment.yaml
-│   │   ├── create-change.ts      # Creates Jira Changes from deployment.yaml
-│   │   ├── transition-change.ts  # Updates Jira workflow states
-│   │   ├── verify-approval.ts    # Verifies TechOps approval
-│   │   └── index.ts              # Main exports
-│   └── app.js                    # Legacy app (not used)
+│     ├── types.ts              # TypeScript type definitions
+│     ├── config.ts             # Jira custom field mappings
+│     ├── client.ts             # Jira API client (calls Jira REST API)
+│     ├── manifest-parser.ts    # Reads & parses deployment.yaml
+│     ├── create-change.ts      # Creates Jira Changes from deployment.yaml
+│     ├── transition-change.ts  # Updates Jira workflow states
+│     ├── verify-approval.ts    # Verifies TechOps approval
+│     └── index.ts              # Main exports
+│   
 ├── .github/
 │   ├── actions/
 │   │   └── releaselens-change/   # Composite action (calls src/jira/)
@@ -223,12 +223,11 @@ releaselens-sandbox/
 │   └── workflows/
 │       ├── releaselens-v2.yml         # Staging deployment (uses composite action)
 │       ├── release-prod-v2.yml        # Production deployment (uses composite action)
-│       ├── releaselens.yml            # [OLD] Original bash version
-│       └── release-prod.yml           # [OLD] Original bash version
+│     
 ├── .techops/
-│   └── deployment.yaml           # Deployment manifest
+│   └── deployment.yaml                # Deployment manifest
 ├── docs/
-│   └── RELEASELENS_SETUP.md     # Complete setup guide
+│   └── RELEASELENS_SETUP.md            # Complete setup guide
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -367,9 +366,6 @@ curl -X GET \
 |----------|---------|
 | **`QUICK_START_DEVELOPERS.md`** | 5-minute quick start guide |
 | **`HOW_IT_WORKS.md`** | Simple explanation of the system |
-| **`JIRA_TICKETS_QUICK_GUIDE.md`** | Dev vs Change tickets explained |
-| **`docs/DEVELOPER_WORKFLOW.md`** | Complete developer workflow |
-| **`docs/JIRA_TICKETS_EXPLAINED.md`** | Detailed Jira tickets guide |
 | `.techops/deployment.yaml` | Manifest template to update |
 
 **Key points**: 
@@ -392,16 +388,8 @@ curl -X GET \
 | Document | Purpose |
 |----------|---------|
 | **`POLICY_SUMMARY.md`** | Quick policy reference |
-| **`docs/HIGH_RISK_POLICY.md`** | Complete approval policy |
-| **`docs/QUICK_REFERENCE.md`** | CLI commands and JQL queries |
+| **`docs/HIGH_RISK_POLICY.md`** | Complete approval policy 
 
-### 📊 For Leadership
-
-| Document | Purpose |
-|----------|---------|
-| **`docs/DELIVERY_SUMMARY.md`** | Project delivery summary |
-| **`docs/CONFLUENCE_IMPLEMENTATION.md`** | Confluence-ready documentation |
-| **`docs/IMPLEMENTATION_ALIGNMENT.md`** | Alignment with requirements |
 
 ## Scripts
 
@@ -422,7 +410,7 @@ npm test
 - **js-yaml**: YAML parser for deployment manifests
 - **typescript**: TypeScript compiler
 
-## Migrating from v1 to v2
+## Workflows
 
 The v2 workflows (`releaselens-v2.yml`, `release-prod-v2.yml`) use the new TypeScript client and composite action instead of inline bash/curl:
 
@@ -510,4 +498,3 @@ For issues or questions, see:
 
 ---
 
-**Happy Deploying! 🚀**

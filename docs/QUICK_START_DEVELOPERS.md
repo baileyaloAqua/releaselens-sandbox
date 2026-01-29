@@ -217,7 +217,7 @@ rollback:
 ## 📚 Full Documentation
 
 - **This guide**: Quick start (you are here)
-- **`docs/DEVELOPER_WORKFLOW.md`**: Complete developer guide
+- **`docs/JIRA_TICKETS_EXPLAINED.md`**: Understanding dev vs change tickets
 - **`docs/ARCHITECTURE.md`**: How automation works
 - **README.md**: See "Risk Assessment" section for TechOps approval policy
 

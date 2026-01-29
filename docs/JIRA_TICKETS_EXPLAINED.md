@@ -82,11 +82,11 @@ jira_ticket: "FO-1234"  # ← Link to EXISTING dev ticket
 
 ### What Happens
 
-1. **You work on dev ticket**: `FO-1234`
-2. **You update deployment.yaml**: Include `jira_ticket: "FO-1234"`
+1. **You work on dev ticket(s)**: `FO-1234` (or multiple: `FO-1234, FO-5678`)
+2. **You update deployment.yaml**: Include `jira_ticket: "FO-1234"` (or `"FO-1234, FO-5678"`)
 3. **GitHub Actions creates Change ticket**: `CHGTEST-42`
-4. **Change ticket links to dev ticket**: 
-   - Description includes: "Related dev ticket: FO-1234"
+4. **Change ticket links to dev ticket(s)**: 
+   - Description includes: "Related dev ticket: FO-1234" (or "Related dev tickets: FO-1234, FO-5678")
    - Creates traceability
 
 ### Result in Jira
@@ -308,10 +308,10 @@ A: Yes! Nothing changes. Your PM creates them, you work on them.
 A: No! ReleaseLens creates them automatically when you deploy.
 
 **Q: What's the `jira_ticket` field in deployment.yaml?**  
-A: It's the dev ticket you worked on (e.g., FO-1234). ReleaseLens uses this to link the Change ticket to your dev work.
+A: It's the dev ticket(s) you worked on (e.g., `"FO-1234"` or `"FO-1234, FO-5678"`). ReleaseLens uses this to link the Change ticket to your dev work. Supports multiple tickets via comma-separated format.
 
 **Q: Can one Change ticket have multiple dev tickets?**  
-A: Currently one-to-one. If you deploy multiple features, list all dev tickets in the summary.
+A: **Yes!** Use comma-separated format: `jira_ticket: "FO-1234, FO-5678, BE-9012"`. All tickets will be linked in the Change ticket description. See `docs/MULTIPLE_DEV_TICKETS.md` for details.
 
 **Q: What if I forget to set jira_ticket in deployment.yaml?**  
 A: Change ticket still gets created, just without the dev ticket link. Best practice: always link them.
@@ -343,8 +343,8 @@ jira_ticket: ""
 
 ```yaml
 # If deploying multiple features
-summary: "Deploy user profile updates (FO-1234, FO-5678)"
-jira_ticket: "FO-1234"  # Primary ticket
+summary: "Deploy user profile updates"
+jira_ticket: "FO-1234, FO-5678"  # Multiple tickets supported!
 ```
 
 ### 3. Keep Dev Ticket Updated
@@ -383,20 +383,22 @@ Check the Change ticket:
 ### How They Connect
 
 ```
-Dev Ticket (FO-1234)
+Dev Ticket(s) (FO-1234, FO-5678, ...)
       ↓
   (referenced in)
       ↓
-deployment.yaml
+deployment.yaml: jira_ticket: "FO-1234, FO-5678"
       ↓
   (GitHub Actions reads)
       ↓
 Change Ticket (CHGTEST-42)
       ↓
-  (links back to)
+  (links back to ALL)
       ↓
-Dev Ticket (FO-1234)
+Dev Tickets (FO-1234, FO-5678, ...)
 ```
+
+**Note**: Supports single or multiple dev tickets via comma-separated format.
 
 ### Key Takeaway
 
@@ -407,5 +409,7 @@ Dev Ticket (FO-1234)
 
 ---
 
-**Last Updated**: 2026-01-28  
-**Questions?** See `QUICK_START_DEVELOPERS.md`
+**Last Updated**: 2026-01-29  
+**See Also**: 
+- `QUICK_START_DEVELOPERS.md` - Developer quick start
+- `docs/MULTIPLE_DEV_TICKETS.md` - Multiple dev tickets per deployment

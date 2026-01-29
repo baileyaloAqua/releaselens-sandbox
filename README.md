@@ -46,9 +46,9 @@ ReleaseLens automates the entire change management workflow:
 **No manual Jira tickets** - GitHub Actions handles everything!
 
 See:
-- `docs/DEVELOPER_WORKFLOW.md` - Complete developer guide
+- `QUICK_START_DEVELOPERS.md` - Developer quick start guide
 - `docs/ARCHITECTURE.md` - Technical architecture
-- `docs/FLOW_DIAGRAM.md` - Visual flow diagram
+- `ReleaseLens-Flowchart.drawio` - Visual flowchart for diagrams.net
 
 ## Quick Start
 
@@ -76,7 +76,7 @@ git push origin service-v1.0.0
 #    - Updates dashboard ✓
 ```
 
-See `docs/DEVELOPER_WORKFLOW.md` for complete guide.
+See `QUICK_START_DEVELOPERS.md` for complete guide.
 
 ### For Setup: Install & Configure
 
@@ -365,7 +365,6 @@ curl -X GET \
 | Document | Purpose |
 |----------|---------|
 | **`QUICK_START_DEVELOPERS.md`** | 5-minute quick start guide |
-| **`docs/DEVELOPER_WORKFLOW.md`** | Complete developer workflow |
 | **`docs/JIRA_TICKETS_EXPLAINED.md`** | Dev tickets vs Change tickets |
 | **`docs/MULTIPLE_DEV_TICKETS.md`** | Multiple tickets per deployment |
 | `.techops/deployment.yaml` | Manifest template to update |
@@ -376,7 +375,6 @@ curl -X GET \
 |----------|---------|
 | **`docs/RELEASELENS_SETUP.md`** | Complete Jira setup (7 phases) |
 | **`docs/ARCHITECTURE.md`** | Technical architecture |
-| **`docs/FLOW_DIAGRAM.md`** | Visual flow with execution logs |
 | **`docs/QUICK_REFERENCE.md`** | CLI commands & JQL queries |
 
 ### 🔒 For TechOps

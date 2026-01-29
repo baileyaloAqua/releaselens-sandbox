@@ -60,5 +60,3 @@ jobs:
           }
           EOF
 
-  # NOTE: Production deployment removed - ALL changes require TechOps approval
-  # Use the manual production workflow (release-prod-v2.yml) for all deployments

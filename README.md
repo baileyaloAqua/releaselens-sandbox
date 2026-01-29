@@ -478,10 +478,6 @@ rollback:
 
 See [docs/RELEASELENS_SETUP.md](docs/RELEASELENS_SETUP.md) for more troubleshooting.
 
-## License
-
-MIT
-
 ## Support
 
 For issues or questions, see:

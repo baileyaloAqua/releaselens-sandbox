@@ -397,6 +397,8 @@ npm run jira:create-change
 npm test
 ```
 
+**See `CLI_USAGE.md` for complete CLI documentation and examples.**
+
 ## Dependencies
 
 - **axios**: HTTP client for Jira REST API

@@ -3,7 +3,21 @@
  * ReleaseLens Jira Integration - CLI for transitioning Jira Change issues
  * 
  * Usage:
- *   node transition-change.js --change-key CHGTEST-123 --state "Completed"
+ *   node dist/jira/transition-change.js --change-key CHGTEST-123 --state "Completed"
+ * 
+ * Required:
+ *   --change-key       Jira issue key (e.g., CHGTEST-123)
+ *   --state            Target state (e.g., "Completed", "Approved for Prod", "Rejected")
+ * 
+ * Environment Variables:
+ *   JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN, JIRA_CHANGE_PROJECT_KEY
+ * 
+ * Examples:
+ *   # Mark deployment completed
+ *   node dist/jira/transition-change.js --change-key CHGTEST-42 --state "Completed"
+ * 
+ *   # Approve for production
+ *   node dist/jira/transition-change.js --change-key CHGTEST-42 --state "Approved for Prod"
  */
 
 import { JiraClient } from './client';

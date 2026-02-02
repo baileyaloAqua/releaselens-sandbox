@@ -63,12 +63,12 @@ export class JiraClient {
       };
 
       // Add optional fields if present
-      if (request.rollbackEstTimeMinutes !== undefined) {
-        payload.fields[JIRA_CUSTOM_FIELDS.ROLLBACK_EST_TIME] = request.rollbackEstTimeMinutes;
-      }
-      if (request.rollbackDataRestoreRequired !== undefined) {
-        payload.fields[JIRA_CUSTOM_FIELDS.ROLLBACK_DATA_RESTORE] = request.rollbackDataRestoreRequired;
-      }
+      // if (request.rollbackEstTimeMinutes !== undefined) {
+      //   payload.fields[JIRA_CUSTOM_FIELDS.ROLLBACK_EST_TIME] = request.rollbackEstTimeMinutes;
+      // }
+      // if (request.rollbackDataRestoreRequired !== undefined) {
+      //   payload.fields[JIRA_CUSTOM_FIELDS.ROLLBACK_DATA_RESTORE] = request.rollbackDataRestoreRequired;
+      // }
 
       const response = await this.client.post<JiraIssueResponse>('/issue', payload);
       return response.data;

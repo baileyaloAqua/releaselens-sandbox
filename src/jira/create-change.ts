@@ -3,7 +3,28 @@
  * ReleaseLens Jira Integration - CLI for creating Jira Change issues
  * 
  * Usage:
- *   node create-change.js --manifest .techops/deployment.yaml --tag v1.0.0 --environment staging
+ *   node dist/jira/create-change.js --tag service-v1.0.0 [OPTIONS]
+ * 
+ * Required:
+ *   --tag              Git tag (e.g., service-v1.0.0)
+ * 
+ * Optional:
+ *   --manifest         Path to deployment.yaml (default: .techops/deployment.yaml)
+ *   --environment      Target environment: staging or production (default: staging)
+ *   --github-run-url   GitHub Actions run URL (auto-constructed in CI)
+ * 
+ * Environment Variables:
+ *   JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN, JIRA_CHANGE_PROJECT_KEY
+ * 
+ * Examples:
+ *   # Minimum (uses defaults)
+ *   node dist/jira/create-change.js --tag admin-site-v1.5.0
+ * 
+ *   # Full options
+ *   node dist/jira/create-change.js \
+ *     --manifest .techops/deployment.yaml \
+ *     --tag admin-site-v1.5.0 \
+ *     --environment production
  */
 
 import { JiraClient } from './client';

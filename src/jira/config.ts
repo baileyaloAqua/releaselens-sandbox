@@ -6,7 +6,6 @@ import { JiraConfig } from './types';
 
 /**
  * Custom field IDs mapping for Jira Change issues
- * Update these IDs based on your actual Jira instance configuration
  */
 export const JIRA_CUSTOM_FIELDS = {
   SERVICE: 'customfield_10001',

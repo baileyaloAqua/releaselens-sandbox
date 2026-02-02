@@ -5,7 +5,10 @@
   "scripts": {
     "test": "echo 'Error: no test specified' && exit 1",
     "build": "tsc",
-    "jira:create-change": "node dist/jira/create-change.js"
+    "jira:create": "node dist/jira/create-change.js",
+    "jira:transition": "node dist/jira/transition-change.js",
+    "jira:verify": "node dist/jira/verify-approval.js"
+
   },
   "dependencies": {
     "axios": "^1.6.5",

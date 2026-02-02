@@ -3,7 +3,22 @@
  * ReleaseLens Jira Integration - CLI for verifying production approval
  * 
  * Usage:
- *   node verify-approval.js --change-key CHGTEST-123
+ *   node dist/jira/verify-approval.js --change-key CHGTEST-123
+ * 
+ * Required:
+ *   --change-key       Jira issue key (e.g., CHGTEST-123)
+ * 
+ * Environment Variables:
+ *   JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN, JIRA_CHANGE_PROJECT_KEY
+ * 
+ * Description:
+ *   Verifies that a Change issue is approved for production deployment.
+ *   For high risk deployments, requires status "Approved for Prod".
+ *   Exits with code 1 if not approved, code 0 if approved.
+ * 
+ * Examples:
+ *   # Verify approval before deploying to production
+ *   node dist/jira/verify-approval.js --change-key CHGTEST-42
  */
 
 import { JiraClient } from './client';

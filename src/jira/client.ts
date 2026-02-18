@@ -62,14 +62,6 @@ export class JiraClient {
         },
       };
 
-      // Add optional fields if present
-      // if (request.rollbackEstTimeMinutes !== undefined) {
-      //   payload.fields[JIRA_CUSTOM_FIELDS.ROLLBACK_EST_TIME] = request.rollbackEstTimeMinutes;
-      // }
-      // if (request.rollbackDataRestoreRequired !== undefined) {
-      //   payload.fields[JIRA_CUSTOM_FIELDS.ROLLBACK_DATA_RESTORE] = request.rollbackDataRestoreRequired;
-      // }
-
       const response = await this.client.post<JiraIssueResponse>('/issue', payload);
       return response.data;
     } catch (error) {
@@ -137,32 +129,6 @@ export class JiraClient {
     } catch (error) {
       this.handleError(error, `Failed to transition ${issueKey} to ${targetState}`);
       throw error;
-    }
-  }
-
-  /**
-   * Verify that a change is approved for production
-   */
-  async verifyApprovedForProd(issueKey: string, expectedRisk?: 'medium' | 'high'): Promise<void> {
-    const issue = await this.getIssue(issueKey);
-    const currentStatus = issue.fields.status.name;
-    const riskLevel = issue.fields[JIRA_CUSTOM_FIELDS.RISK_LEVEL];
-
-    // Verify risk level if specified
-    if (expectedRisk && riskLevel !== expectedRisk && riskLevel !== 'low') {
-      console.warn(
-        `Warning: Expected risk level "${expectedRisk}" but got "${riskLevel}" for ${issueKey}`
-      );
-    }
-
-    // For medium/high risk, must be approved
-    if (riskLevel === 'medium' || riskLevel === 'high') {
-      if (currentStatus !== 'Approved for Prod') {
-        throw new Error(
-          `Change ${issueKey} is ${riskLevel} risk and requires TechOps approval. ` +
-          `Current status: ${currentStatus}. Expected: Approved for Prod.`
-        );
-      }
     }
   }
 

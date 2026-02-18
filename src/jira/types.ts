@@ -69,24 +69,6 @@ export interface JiraChangeRequest {
   };
 }
 
-export interface JiraCustomFieldMapping {
-  service: string;              // customfield_10001
-  environment: string;           // customfield_10002
-  riskLevel: string;             // customfield_10003
-  blastRadius: string;           // customfield_10004
-  servicesImpacted: string;      // customfield_10005
-  dataMigration: string;         // customfield_10006
-  backwardCompatible: string;    // customfield_10007
-  rollbackMethod: string;        // customfield_10008
-  rollbackTargetVersion: string; // customfield_10009
-  rollbackEstTime?: string;      // customfield_10010
-  rollbackDataRestore?: string;  // customfield_10011
-  team: string;                  // customfield_10012
-  slackChannel: string;          // customfield_10013
-  gitTag: string;                // customfield_10014
-  githubRunUrl: string;          // customfield_10015
-}
-
 export interface JiraIssueResponse {
   id: string;
   key: string;

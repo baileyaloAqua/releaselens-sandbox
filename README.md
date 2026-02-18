@@ -48,7 +48,6 @@ ReleaseLens automates the entire change management workflow:
 See:
 - `QUICK_START_DEVELOPERS.md` - Developer quick start guide
 - `docs/ARCHITECTURE.md` - Technical architecture
-- `ReleaseLens-Flowchart.drawio` - Visual flowchart for diagrams.net
 
 ## Quick Start
 
@@ -373,6 +372,8 @@ curl -X GET \
 
 | Document | Purpose |
 |----------|---------|
+| **`docs/HOW_TO_INTEGRATE_RELEASELENS.md`** | **Integrate ReleaseLens into existing deploy workflows** (e.g. aq-monorepo STAGING + PROD/CERT) |
+| **`docs/RELEASELENS_RULES.md`** | **Gating & Jira dashboard rules** (approval required, create/verify/transition) |
 | **`docs/RELEASELENS_SETUP.md`** | Complete Jira setup (7 phases) |
 | **`docs/ARCHITECTURE.md`** | Technical architecture |
 | **`docs/QUICK_REFERENCE.md`** | CLI commands & JQL queries |
